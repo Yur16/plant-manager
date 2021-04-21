@@ -29,6 +29,7 @@ export function Confirmation() {
         <View style={styles.footer}>
           <Button 
             title="Começar"
+            onPress={() => navigation.navigate('plantSelect')}
           />
         </View>
       </View>
