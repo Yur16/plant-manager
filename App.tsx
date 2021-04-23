@@ -23,7 +23,7 @@ export default function App() {
   <>
     <StatusBar 
       barStyle='dark-content'
-      backgroundColor={colors.background} 
+      backgroundColor='transparent'
     />
     <Routes />
   </> 

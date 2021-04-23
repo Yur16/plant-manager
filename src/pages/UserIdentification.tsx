@@ -1,6 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 import { Button } from '../components/Button';
 import colors from '../styles/colors';
 import fonts from '../styles/fonts';
@@ -24,6 +25,28 @@ export function UserIdentification() {
     setIsFilled(!!value)
     setName(value)
   }
+
+  async function handleSubmit() {
+    if(!name)
+      return Alert.alert(
+        'Espera um pouco',
+        'Me diz como podemos chamar você'
+      )
+      
+      try {
+        await AsyncStorage.setItem('@plantmanager:user', name)        
+        navigation.navigate('confirmation',{
+          title: 'Prontinho!',
+          subtitle: 'Agora vamos começar a cuidar das suas plantinhas com muito cuidado.',
+          buttonTitle: 'Começar',
+          icon: 'smile',
+          nextScreen: 'plantSelect'
+        })
+      } catch {
+        Alert.alert('Ops', 'Não foi possível salvar seu nome')
+      }
+  }
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -56,7 +79,7 @@ export function UserIdentification() {
             <View style={styles.footer}>
               <Button
                 title="Confirmar"
-                onPress={() => navigation.navigate('confirmation')}
+                onPress={handleSubmit}
               />
             </View>
           </View>
