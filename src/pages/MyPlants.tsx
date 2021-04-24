@@ -1,19 +1,55 @@
 import React, { useEffect, useState } from 'react'
-import { Image, StyleSheet, Text, View, FlatList } from 'react-native'
-import { Header } from '../components/Header'
-import colors from '../styles/colors'
-
-import waterdrop from '../assets/waterdrop.png'
-import { loadPlant, PlantProps } from '../libs/storage'
+import { Image, StyleSheet, Text, View, FlatList, Alert } from 'react-native'
 import { formatDistance } from 'date-fns'
 import { pt } from 'date-fns/locale'
-import fonts from '../styles/fonts'
+
+import { Header } from '../components/Header'
 import { PlantCardSecondary } from '../components/PlantCardSecondary'
+
+import { loadPlant, PlantProps, StoragePlantProps } from '../libs/storage'
+import waterdrop from '../assets/waterdrop.png'
+
+import fonts from '../styles/fonts'
+import colors from '../styles/colors'
+import { Load } from '../components/Load'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export function MyPlants() {
   const [myPlants, setMyPlants] = useState<PlantProps[]>([])
   const [loading, setLoading] = useState(true)
   const [nextWatered, setNextWatered] = useState<string>() 
+
+  function handleRemove(plant:PlantProps) {
+    Alert.alert('Remover', `Deseja remover a ${plant.name}`, [
+      {
+        text: 'Não 🙏',
+        style: 'cancel'
+      },
+      {
+        text: 'Sim 😢',
+        onPress: async () => {
+          try {
+            const data = await AsyncStorage.getItem('@plantmanager:plants')
+            const plants = data ? (JSON.parse(data) as StoragePlantProps) : {}
+
+            delete plants[plant.id]
+
+            await AsyncStorage.setItem(
+              '@plantmanager:plants',
+              JSON.stringify(plants)
+            )
+
+            setMyPlants((oldData) => 
+              oldData.filter((item) => item.id !== plant.id)
+            )
+          } catch (error) {
+            Alert.alert('Não foi possível remover')
+          }
+        }
+      }
+    ])
+
+  }
 
   useEffect(() => {
     async function loadStorageData() {
@@ -30,10 +66,15 @@ export function MyPlants() {
       )
       
       setMyPlants(plantsStoraged)
+      setLoading(false)
     }
 
     loadStorageData()
   }, [])
+
+
+  if(loading)
+    return <Load />
 
   return (
     <View style={styles.container}>
@@ -59,7 +100,10 @@ export function MyPlants() {
           data={myPlants}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
-            <PlantCardSecondary data={item} />
+            <PlantCardSecondary 
+              data={item} 
+              handleRemove={() => {handleRemove(item)}}
+            />
           )}
           showsVerticalScrollIndicator={false}
         />
